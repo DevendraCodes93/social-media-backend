@@ -1,7 +1,7 @@
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/generateToken.js";
-import Blacklisted from "../models/blacklistedModel.js";
+import Blacklisted from "../models/BlacklistedModel.js";
 
 import jwt from "jsonwebtoken";
 import cloudinary from "../lib/cloudinary.js";
