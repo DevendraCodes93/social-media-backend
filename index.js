@@ -8,7 +8,7 @@ import { dbConnect } from "./lib/db.js";
 dotenv.config();
 /*http://localhost:5173*/
 const app = express();
-app.use(cors({ origin: "https://socialdev.netlify.app", credentials: true }));
+app.use(cors({ origin: "https://socialdev1.netlify.app", credentials: true }));
 dbConnect();
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
