@@ -31,6 +31,7 @@ export const createPost = async (req, res) => {
       message: "Post created successfully",
       success: true,
       content: content,
+      user,
       post: newPost,
     });
   } catch (error) {
@@ -75,6 +76,7 @@ export const createPostVideo = async (req, res) => {
       message: "Post created successfully",
       success: true,
       content: content,
+      user,
       post: newPost,
     });
   } catch (error) {
@@ -110,16 +112,22 @@ export const getPosts = async (req, res) => {
 export const getAllPosts = async (req, res) => {
   const page = parseInt(req.params.page);
   const limit = 10;
+  const totalPosts = await Post.countDocuments();
+  const postsToSample = totalPosts < 100 ? totalPosts : 100;
   try {
     const skip = page * limit;
-    const posts = await Post.find({})
-      .populate("user")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-    console.log(posts);
 
-    if (posts.length === 0) {
+    const postsInitial = await Post.find({}) // Fetch all posts
+      .populate("user")
+      .populate("likedBy");
+    const start = page * limit;
+    const end = start + limit;
+    const shuffledPosts = postsInitial.sort(() => Math.random() - 0.5);
+    const postsForPage = shuffledPosts.slice(start, end);
+
+    console.log(postsForPage);
+
+    if (postsForPage.length === 0) {
       return res.status(404).json({
         message: "No posts found",
         success: false,
@@ -129,7 +137,7 @@ export const getAllPosts = async (req, res) => {
     return res.status(200).json({
       message: "Posts fetched successfully",
       success: true,
-      posts,
+      posts: postsForPage,
     });
   } catch (error) {
     console.error(error);
@@ -137,5 +145,29 @@ export const getAllPosts = async (req, res) => {
       message: "Internal server error",
       success: false,
     });
+  }
+};
+export const likePost = async (req, res) => {
+  const likerId = req.params.id;
+  const postId = req.params.post;
+  console.log(likerId, postId);
+  try {
+    if (!postId) return;
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const alreadyLiked = post.likedBy.includes(likerId);
+
+    if (alreadyLiked) {
+      // Unlike
+      await Post.findByIdAndUpdate(postId, { $pull: { likedBy: likerId } });
+      return res.status(200).json({ message: "Post unliked", success: true });
+    } else {
+      // Like
+      await Post.findByIdAndUpdate(postId, { $addToSet: { likedBy: likerId } });
+      return res.status(200).json({ message: "Post liked", success: true });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
