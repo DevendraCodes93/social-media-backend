@@ -6,13 +6,14 @@ import postRouter from "./routes/postRoute.js";
 import cookieParser from "cookie-parser";
 import { dbConnect } from "./lib/db.js";
 dotenv.config();
-/*http://localhost:5173*/
+/**/
 const app = express();
+app.use(cookieParser());
+
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cors({ origin: "https://socialdev1.netlify.app", credentials: true }));
 dbConnect();
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-app.use(express.json({ limit: "50mb" }));
 app.use("/api/auth", userRouter);
 app.use("/api/post", postRouter);
 const PORT = process.env.PORT || 3001;
