@@ -121,33 +121,36 @@ export const singlePost = async (req, res) => {
   });
 };
 export const getAllPosts = async (req, res) => {
-  const page = parseInt(req.params.page);
+  const page = parseInt(req.params.page) || 0;
   const limit = 10;
-  const totalPosts = await Post.countDocuments();
-  const postsToSample = totalPosts < 100 ? totalPosts : 100;
+
   try {
+    const totalPosts = await Post.countDocuments();
     const skip = page * limit;
 
-    const postsInitial = await Post.find({})
-      .populate("user")
-
-      .populate("likedBy");
-    const start = page * limit;
-    const end = start + limit;
-    const shuffledPosts = postsInitial.sort(() => Math.random() - 0.5);
-    const postsForPage = shuffledPosts.slice(start, end);
-
-    if (postsForPage.length === 0) {
-      return res.status(404).json({
-        message: "No posts found",
-        success: false,
+    // If skip exceeds total posts, no more posts
+    if (skip >= totalPosts) {
+      return res.status(200).json({
+        message: "No more posts",
+        success: true,
+        posts: [],
       });
     }
+
+    // Adjust limit to avoid overflow
+    const adjustedLimit = Math.min(limit, totalPosts - skip);
+
+    const posts = await Post.find({})
+      .sort({ createdAt: -1 }) // Optional: latest first
+      .skip(skip)
+      .limit(adjustedLimit)
+      .populate("user")
+      .populate("likedBy");
 
     return res.status(200).json({
       message: "Posts fetched successfully",
       success: true,
-      posts: postsForPage,
+      posts,
     });
   } catch (error) {
     console.error(error);
@@ -157,6 +160,7 @@ export const getAllPosts = async (req, res) => {
     });
   }
 };
+
 export const likePost = async (req, res) => {
   const likerId = req.params.id;
   const postId = req.params.post;

@@ -2,7 +2,7 @@ import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/generateToken.js";
 import Blacklisted from "../models/BlacklistedModel.js";
-
+import Post from "../models/PostModel.js";
 import jwt from "jsonwebtoken";
 import cloudinary from "../lib/cloudinary.js";
 export const checkAuth = async (req, res) => {
@@ -123,4 +123,21 @@ export const getAllUsers = async (req, res) => {
     success: true,
     users,
   });
+};
+export const userDetails = async (req, res) => {
+  const { userId } = req.query;
+  try {
+    if (!userId) return res.status(401).json({ message: "userId is missing" });
+    const user = await User.findById(userId).select("-password");
+    const userPosts = await Post.find({ user: userId }).populate("user");
+    if (!user) return res.status(401).json({ message: "User not found" });
+    res
+      .status(200)
+      .json({ message: "user fetched successfully", userPosts, user });
+    
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
 };

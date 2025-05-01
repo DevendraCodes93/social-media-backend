@@ -5,6 +5,7 @@ import {
   login,
   logout,
   signUp,
+  userDetails,
 } from "../controllers/userController.js";
 import { authMiddleware } from "../middlewares/authMiddleWare.js";
 
@@ -14,4 +15,5 @@ router.post("/login", login);
 router.post("/check-auth", authMiddleware, checkAuth);
 router.post("/logout", authMiddleware, logout);
 router.get("/get-all-users", authMiddleware, getAllUsers);
+router.get("/user-profile", authMiddleware, userDetails);
 export default router;
