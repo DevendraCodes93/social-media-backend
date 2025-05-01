@@ -1,4 +1,5 @@
 import cloudinary from "../lib/cloudinary.js";
+import Comment from "../models/Comments.js";
 import Post from "../models/PostModel.js";
 import User from "../models/userModel.js";
 
@@ -109,6 +110,16 @@ export const getPosts = async (req, res) => {
     });
   }
 };
+export const singlePost = async (req, res) => {
+  const postId = req.query.postId;
+  if (!postId) return res.status(400).json({ message: " postId is missing." });
+  const post = await Post.findById(postId).populate("user");
+  return res.status(201).json({
+    message: "Fetched successfully",
+    success: true,
+    post: post,
+  });
+};
 export const getAllPosts = async (req, res) => {
   const page = parseInt(req.params.page);
   const limit = 10;
@@ -119,13 +130,12 @@ export const getAllPosts = async (req, res) => {
 
     const postsInitial = await Post.find({})
       .populate("user")
+
       .populate("likedBy");
     const start = page * limit;
     const end = start + limit;
     const shuffledPosts = postsInitial.sort(() => Math.random() - 0.5);
     const postsForPage = shuffledPosts.slice(start, end);
-
-    console.log(postsForPage);
 
     if (postsForPage.length === 0) {
       return res.status(404).json({
@@ -171,7 +181,6 @@ export const likePost = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 export const serveVideos = async (req, res) => {
   const page = parseInt(req.params.page);
   const limit = 10;
@@ -208,5 +217,53 @@ export const serveVideos = async (req, res) => {
       message: "Internal server error",
       success: false,
     });
+  }
+};
+export const postComment = async (req, res) => {
+  const { comment } = req.body;
+  const postId = req.query.postId;
+  const userId = req.user.id;
+
+  if (!comment || !postId)
+    return res.status(400).json({ message: "Comment or postId is missing." });
+  try {
+    const post = await Post.findById(postId);
+    if (!post) return res.status(400).json({ message: "Post not found." });
+    const newComment = new Comment({
+      commenterId: userId,
+      comment: comment,
+      postId: postId,
+    });
+
+    await newComment.save();
+    await newComment.populate("commenterId");
+    await newComment.populate("postId");
+
+    return res.status(200).json({
+      message: "Commented successfully",
+      success: true,
+      comment: newComment,
+    });
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: "Error while commenting a post", error: error.message });
+  }
+};
+export const getComments = async (req, res) => {
+  const { postId } = req.query;
+  console.log(postId);
+  if (!postId) return res.status(400).json({ message: "postId is missing." });
+  try {
+    const post = await Comment.find({ postId })
+      .populate("postId")
+      .populate("commenterId");
+    console.log(post);
+    if (!post) return res.status(400).json({ message: "post not found" });
+    return res.status(201).json({ message: "Fetched successfully", post });
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: "Error while fetching comments", error: error.message });
   }
 };
