@@ -12,8 +12,8 @@ app.use(cookieParser());
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-// https://socialdev1.netlify.app
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+//
+app.use(cors({ origin: "https://socialdev1.netlify.app", credentials: true }));
 dbConnect();
 app.use("/api/auth", userRouter);
 app.use("/api/post", postRouter);
