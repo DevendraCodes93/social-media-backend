@@ -45,7 +45,8 @@ export const createPost = async (req, res) => {
 };
 export const createPostVideo = async (req, res) => {
   const userId = req.user.id;
-  const { content, videoUrl, title, video } = req.body;
+  const { content, videoUrl, title, video, thumbnail } = req.body;
+
   if (!title || !videoUrl) {
     return res
       .status(400)
@@ -58,6 +59,11 @@ export const createPostVideo = async (req, res) => {
         .status(404)
         .json({ message: "User not found", success: false });
     }
+    let thumbnailUpload;
+
+    if (thumbnail) {
+      thumbnailUpload = await cloudinary.uploader.upload(thumbnail);
+    }
 
     const response = await cloudinary.uploader.upload(videoUrl, {
       resource_type: "video",
@@ -69,6 +75,7 @@ export const createPostVideo = async (req, res) => {
       content: content,
       title,
       post: response.secure_url,
+      thumbnail: thumbnailUpload.secure_url,
       video,
     });
 
