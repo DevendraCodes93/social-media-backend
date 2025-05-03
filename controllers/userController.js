@@ -140,3 +140,19 @@ export const userDetails = async (req, res) => {
       .json({ message: "Internal server error", error: error.message });
   }
 };
+
+export const authUserPosts = async (req, res) => {
+  const userId = req.user.id;
+  console.log(userId);
+
+  try {
+    const userPosts = await Post.find({ user: userId }).populate("user");
+
+    if (!userPosts) return res.status(401).json({ message: "No posts found" });
+    res
+      .status(201)
+      .json({ message: "auth user posts fetched successfully", userPosts });
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+};
