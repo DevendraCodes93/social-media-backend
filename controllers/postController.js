@@ -193,34 +193,41 @@ export const likePost = async (req, res) => {
   }
 };
 export const serveVideos = async (req, res) => {
-  const page = parseInt(req.params.page);
+  const page = req.params.page;
   const limit = 10;
   const totalPosts = await Post.countDocuments();
   const postsToSample = totalPosts < 100 ? totalPosts : 100;
+
   try {
     const skip = page * limit;
 
     const postsInitial = await Post.find({ video: true })
       .populate("user")
-      .populate("likedBy");
-    const start = page * limit;
-    const end = start + limit;
-    const shuffledPosts = postsInitial.sort(() => Math.random() - 0.5);
-    const postsForPage = shuffledPosts.slice(start, end);
-
-    console.log(postsForPage);
-
-    if (postsForPage.length === 0) {
+      .populate("likedBy")
+      .skip(skip)
+      .limit(limit);
+   
+    if (postsInitial.length === 0) {
       return res.status(404).json({
         message: "No posts found",
         success: false,
       });
     }
+    const shuffledPosts = postsInitial.sort(() => Math.random() - 0.5);
 
+  
+    if (shuffledPosts.length === 0) {
+      return res.status(404).json({
+        message: "No posts found",
+        success: false,
+      });
+    }
+  
+    // Send the shuffled posts
     return res.status(200).json({
       message: "Posts fetched successfully",
       success: true,
-      posts: postsForPage,
+      posts: shuffledPosts,
     });
   } catch (error) {
     console.error(error);

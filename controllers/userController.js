@@ -71,7 +71,7 @@ export const signUp = async (req, res) => {
     message: "User created successfully",
     success: true,
     token,
-    newUser,
+    user: newUser,
   });
 };
 
@@ -134,7 +134,6 @@ export const userDetails = async (req, res) => {
     res
       .status(200)
       .json({ message: "user fetched successfully", userPosts, user });
-    
   } catch (error) {
     res
       .status(500)
