@@ -4,7 +4,7 @@ const storySchema = mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "AppUser" },
     story: { type: String, required: true },
-    likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "AppUser" }],
+    viewedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "AppUser" }],
     isVideo: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
   },

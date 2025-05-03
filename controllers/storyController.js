@@ -116,17 +116,18 @@ export const allUsersStory = async (req, res) => {
           _id: "$user",
           stories: {
             $push: {
+              _id: "$_id",
               story: "$story",
               isVideo: "$isVideo",
+              viewedBy: "$viewedBy",
               createdAt: "$createdAt",
-              _id: "$_id",
             },
           },
         },
       },
       {
         $lookup: {
-          from: "appusers", // NOTE: MongoDB collection name is lowercase and plural
+          from: "appusers", // Make sure the collection name is correct
           localField: "_id",
           foreignField: "_id",
           as: "user",
@@ -135,11 +136,41 @@ export const allUsersStory = async (req, res) => {
       {
         $unwind: "$user",
       },
+      {
+        $project: {
+          _id: 0,
+          userId: "$user._id",
+          name: "$user.name",
+          profilePic: "$user.profilePic",
+          stories: 1,
+        },
+      },
     ]);
 
     res.json({ stories });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching stories:", err);
     res.status(500).json({ error: "Something went wrong" });
+  }
+};
+export const storyViewed = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const viewerId = req.body.creatorId;
+    console.log(viewerId);
+    const story = await Story.findOneAndUpdate(
+      { user: viewerId },
+      { $addToSet: { viewedBy: userId } },
+      { new: true }
+    );
+
+    if (!story) {
+      return res.status(404).json({ error: "Story not found" });
+    }
+
+    res.status(200).json({ message: "View added", story });
+  } catch (err) {
+    console.error("Error adding view:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
