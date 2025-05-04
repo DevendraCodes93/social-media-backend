@@ -6,6 +6,7 @@ const postSchema = mongoose.Schema(
     content: { type: String, default: "" },
     post: { type: String, default: "" },
     thumbnail: { type: String, default: "" },
+    viewedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "AppUser" }],
     likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "AppUser" }],
     video: { type: Boolean, default: false },
   },

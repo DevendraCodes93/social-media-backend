@@ -18,7 +18,6 @@ app.use(cors({ origin: "https://socialdev1.netlify.app", credentials: true }));
 dbConnect();
 app.use((req, res, next) => {
   res.setTimeout(500000, () => {
-    // Timeout in milliseconds
     res.status(408).send("Request Timeout");
   });
   next();

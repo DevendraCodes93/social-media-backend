@@ -2,6 +2,7 @@ import cloudinary from "../lib/cloudinary.js";
 import Comment from "../models/Comments.js";
 import Post from "../models/PostModel.js";
 import User from "../models/userModel.js";
+// import mongoose from "mongoose";
 
 export const createPost = async (req, res) => {
   const userId = req.user.id;
@@ -128,39 +129,96 @@ export const singlePost = async (req, res) => {
   });
 };
 export const getAllPosts = async (req, res) => {
-  const page = parseInt(req.params.page) || 0;
+  const userId = req.user.id;
   const limit = 10;
+  const batchSize = 10;
 
   try {
     const totalPosts = await Post.countDocuments();
-    const skip = page * limit;
 
-    // If skip exceeds total posts, no more posts
-    if (skip >= totalPosts) {
+    if (totalPosts === 0) {
       return res.status(200).json({
-        message: "No more posts",
+        message: "No posts in the database",
         success: true,
         posts: [],
       });
     }
 
-    // Adjust limit to avoid overflow
-    const adjustedLimit = Math.min(limit, totalPosts - skip);
+    // Get a random start index within range
+    let randomSkip = Math.floor(
+      Math.random() * Math.max(totalPosts - batchSize, 1)
+    );
+    let skip = randomSkip;
+    let filteredPosts = [];
+    let allCheckedPosts = new Set();
 
-    const posts = await Post.find({})
-      .sort({ createdAt: -1 }) // Optional: latest first
-      .skip(skip)
-      .limit(adjustedLimit)
-      .populate("user")
-      .populate("likedBy");
+    // Try from random point forward
+    while (filteredPosts.length < limit && allCheckedPosts.size < totalPosts) {
+      const posts = await Post.find({})
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(batchSize)
+        .populate("user")
+        .populate("likedBy");
+
+      if (posts.length === 0) break;
+
+      for (const post of posts) {
+        if (allCheckedPosts.has(post._id.toString())) continue;
+
+        allCheckedPosts.add(post._id.toString());
+
+        const alreadyViewed = post.viewedBy.some(
+          (id) => id.toString() === userId.toString()
+        );
+
+        if (!alreadyViewed) {
+          filteredPosts.push(post);
+        }
+
+        if (filteredPosts.length === limit) break;
+      }
+
+      skip += batchSize;
+      if (skip >= totalPosts) skip = 0; // Wrap around like a loop
+    }
+
+    // If no new posts, reset viewedBy
+    if (filteredPosts.length === 0) {
+      const allPosts = await Post.find({});
+      for (const post of allPosts) {
+        const index = post.viewedBy.indexOf(userId);
+        if (index !== -1) {
+          post.viewedBy.splice(index, 1);
+          await post.save();
+        }
+      }
+
+      return res.status(200).json({
+        message: "No new posts left. Viewed list reset. Try again!",
+        success: true,
+        posts: [],
+      });
+    }
+
+    // Add user to viewedBy
+    for (const post of filteredPosts) {
+      if (!post.viewedBy.includes(userId)) {
+        post.viewedBy.push(userId);
+        await post.save();
+      }
+    }
 
     return res.status(200).json({
-      message: "Posts fetched successfully",
+      message:
+        filteredPosts.length < limit
+          ? "Less than 10 unseen posts available"
+          : "Posts fetched successfully",
       success: true,
-      posts,
+      posts: filteredPosts,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching posts:", error);
     return res.status(500).json({
       message: "Internal server error",
       success: false,
@@ -193,44 +251,98 @@ export const likePost = async (req, res) => {
   }
 };
 export const serveVideos = async (req, res) => {
-  const page = req.params.page;
+  const userId = req.user.id;
   const limit = 10;
-  const totalPosts = await Post.countDocuments();
-  const postsToSample = totalPosts < 100 ? totalPosts : 100;
+  const batchSize = 10;
 
   try {
-    const skip = page * limit;
+    const totalPosts = await Post.countDocuments({ video: true });
 
-    const postsInitial = await Post.find({ video: true })
-      .populate("user")
-      .populate("likedBy")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    if (postsInitial.length === 0) {
-      return res.status(404).json({
-        message: "No posts found",
-        success: false,
-      });
-    }
-    const shuffledPosts = postsInitial.sort(() => Math.random() - 0.5);
-
-    if (shuffledPosts.length === 0) {
-      return res.status(404).json({
-        message: "No posts found",
-        success: false,
+    if (totalPosts === 0) {
+      return res.status(200).json({
+        message: "No reels in the database",
+        success: true,
+        posts: [],
       });
     }
 
-    // Send the shuffled posts
+    // Pick a random starting point
+    let randomSkip = Math.floor(
+      Math.random() * Math.max(totalPosts - batchSize, 1)
+    );
+    let skip = randomSkip;
+    let filteredPosts = [];
+    let allCheckedPosts = new Set();
+
+    // Loop until we gather 10 unseen reels or exhaust all
+    while (filteredPosts.length < limit && allCheckedPosts.size < totalPosts) {
+      const posts = await Post.find({ video: true })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(batchSize)
+        .populate("user")
+        .populate("likedBy");
+
+      if (posts.length === 0) break;
+
+      for (const post of posts) {
+        const postIdStr = post._id.toString();
+        if (allCheckedPosts.has(postIdStr)) continue;
+
+        allCheckedPosts.add(postIdStr);
+
+        const alreadyViewed = post.viewedBy.some(
+          (id) => id.toString() === userId.toString()
+        );
+
+        if (!alreadyViewed) {
+          filteredPosts.push(post);
+        }
+
+        if (filteredPosts.length === limit) break;
+      }
+
+      skip += batchSize;
+      if (skip >= totalPosts) skip = 0; // Wrap around
+    }
+
+    // If no unseen reels, reset viewedBy
+    if (filteredPosts.length === 0) {
+      const allReelPosts = await Post.find({ video: true });
+
+      for (const post of allReelPosts) {
+        const index = post.viewedBy.indexOf(userId);
+        if (index !== -1) {
+          post.viewedBy.splice(index, 1);
+          await post.save();
+        }
+      }
+
+      return res.status(200).json({
+        message: "No new reels left. Viewed list reset. Try again!",
+        success: true,
+        posts: [],
+      });
+    }
+
+    // Mark reels as viewed
+    for (const post of filteredPosts) {
+      if (!post.viewedBy.includes(userId)) {
+        post.viewedBy.push(userId);
+        await post.save();
+      }
+    }
+
     return res.status(200).json({
-      message: "Posts fetched successfully",
+      message:
+        filteredPosts.length < limit
+          ? "Less than 10 unseen reels available"
+          : "Reels fetched successfully",
       success: true,
-      posts: shuffledPosts,
+      posts: filteredPosts,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching reels:", error);
     return res.status(500).json({
       message: "Internal server error",
       success: false,
