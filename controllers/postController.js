@@ -204,6 +204,7 @@ export const serveVideos = async (req, res) => {
     const postsInitial = await Post.find({ video: true })
       .populate("user")
       .populate("likedBy")
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
