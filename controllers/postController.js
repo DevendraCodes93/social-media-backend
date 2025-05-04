@@ -206,7 +206,7 @@ export const serveVideos = async (req, res) => {
       .populate("likedBy")
       .skip(skip)
       .limit(limit);
-   
+
     if (postsInitial.length === 0) {
       return res.status(404).json({
         message: "No posts found",
@@ -215,14 +215,13 @@ export const serveVideos = async (req, res) => {
     }
     const shuffledPosts = postsInitial.sort(() => Math.random() - 0.5);
 
-  
     if (shuffledPosts.length === 0) {
       return res.status(404).json({
         message: "No posts found",
         success: false,
       });
     }
-  
+
     // Send the shuffled posts
     return res.status(200).json({
       message: "Posts fetched successfully",
@@ -285,4 +284,22 @@ export const getComments = async (req, res) => {
       .json({ message: "Error while fetching comments", error: error.message });
   }
 };
+export const deletePost = async (req, res) => {
+  const userId = req.user.id;
+  const postId = req.query.postId;
 
+  try {
+    if (!postId || !userId)
+      return res
+        .status(401)
+        .json({ message: "Post Id is required", success: false });
+    const response = await Post.findByIdAndDelete({ _id: postId });
+    if (response)
+      return res
+        .status(201)
+        .json({ message: "Post deleted Successfully", response });
+    res.json({ message: "No posts found " });
+  } catch (error) {
+    res.json({ message: error.message });
+  }
+};

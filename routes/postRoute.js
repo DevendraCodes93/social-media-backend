@@ -2,6 +2,7 @@ import express from "express";
 import {
   createPost,
   createPostVideo,
+  deletePost,
   getAllPosts,
   getComments,
   likePost,
@@ -20,5 +21,6 @@ router.post("/like-post/:id/:post", authMiddleware, likePost);
 router.post("/get-videos/:page", authMiddleware, serveVideos);
 router.post("/add-comment", authMiddleware, postComment);
 router.get("/get-comment", authMiddleware, getComments);
+router.delete("/delete-post", authMiddleware, deletePost);
 
 export default router;
