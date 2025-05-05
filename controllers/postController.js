@@ -194,7 +194,7 @@ export const getAllPosts = async (req, res) => {
         }
       }
 
-      return res.status(200).json({
+      return res.status(401).json({
         message: "No new posts left. Viewed list reset. Try again!",
         success: true,
         posts: [],
