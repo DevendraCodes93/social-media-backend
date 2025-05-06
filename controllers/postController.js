@@ -252,8 +252,8 @@ export const likePost = async (req, res) => {
 };
 export const serveVideos = async (req, res) => {
   const userId = req.user.id;
-  const limit = 10;
-  const batchSize = 10;
+  const limit = 5;
+  const batchSize = 5;
 
   try {
     const totalPosts = await Post.countDocuments({ video: true });
