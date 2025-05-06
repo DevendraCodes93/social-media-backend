@@ -229,7 +229,7 @@ export const getAllPosts = async (req, res) => {
 export const likePost = async (req, res) => {
   const likerId = req.params.id;
   const postId = req.params.post;
-  console.log(likerId, postId);
+
   try {
     if (!postId) return;
     const post = await Post.findById(postId);
@@ -313,7 +313,7 @@ export const serveVideos = async (req, res) => {
       for (const post of allReelPosts) {
         const index = post.viewedBy.indexOf(userId);
         if (index !== -1) {
-          post.viewedBy.splice(index, 1);
+          userId && post.viewedBy.splice(index, 1);
           await post.save();
         }
       }
@@ -382,7 +382,7 @@ export const postComment = async (req, res) => {
 };
 export const getComments = async (req, res) => {
   const { postId } = req.query;
-  console.log(postId);
+
   if (!postId) return res.status(400).json({ message: "postId is missing." });
   try {
     const post = await Comment.find({ postId })

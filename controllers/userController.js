@@ -143,7 +143,7 @@ export const userDetails = async (req, res) => {
 
 export const authUserPosts = async (req, res) => {
   const userId = req.user.id;
-  console.log(userId);
+
 
   try {
     const userPosts = await Post.find({ user: userId }).populate("user");
