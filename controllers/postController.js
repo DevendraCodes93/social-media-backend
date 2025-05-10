@@ -266,7 +266,7 @@ export const serveVideos = async (req, res) => {
       });
     }
 
-    // Pick a random starting point
+   
     let randomSkip = Math.floor(
       Math.random() * Math.max(totalPosts - batchSize, 1)
     );
@@ -274,7 +274,7 @@ export const serveVideos = async (req, res) => {
     let filteredPosts = [];
     let allCheckedPosts = new Set();
 
-    // Loop until we gather 10 unseen reels or exhaust all
+  
     while (filteredPosts.length < limit && allCheckedPosts.size < totalPosts) {
       const posts = await Post.find({ video: true })
         .sort({ createdAt: -1 })
@@ -303,10 +303,10 @@ export const serveVideos = async (req, res) => {
       }
 
       skip += batchSize;
-      if (skip >= totalPosts) skip = 0; // Wrap around
+      if (skip >= totalPosts) skip = 0; 
     }
 
-    // If no unseen reels, reset viewedBy
+    
     if (filteredPosts.length === 0) {
       const allReelPosts = await Post.find({ video: true });
 
@@ -325,7 +325,7 @@ export const serveVideos = async (req, res) => {
       });
     }
 
-    // Mark reels as viewed
+   
     for (const post of filteredPosts) {
       if (!post.viewedBy.includes(userId)) {
         post.viewedBy.push(userId);
