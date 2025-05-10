@@ -10,14 +10,14 @@ dotenv.config();
 /**/
 const app = express();
 app.use(cookieParser());
-app.use(
-  express.static("public", {
-    maxAge: "1y", // or 31536000000 ms
-    setHeaders: (res, path) => {
-      res.setHeader("Cache-Control", "public, max-age=31536000");
-    },
-  })
-);
+// app.use(
+//   express.static("public", {
+//     maxAge: "1y", // or 31536000000 ms
+//     setHeaders: (res, path) => {
+//       res.setHeader("Cache-Control", "public, max-age=31536000");
+//     },
+//   })
+// );
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // https://socialdev1.netlify.app
