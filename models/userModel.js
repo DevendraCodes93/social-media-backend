@@ -8,6 +8,12 @@ const userSchema = mongoose.Schema(
       type: String,
       default: "",
     },
+    followers: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "AppUser", default: [] },
+    ],
+    following: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "AppUser", default: [] },
+    ],
     password: { type: String, required: true },
   },
   {

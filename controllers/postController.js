@@ -266,7 +266,6 @@ export const serveVideos = async (req, res) => {
       });
     }
 
-   
     let randomSkip = Math.floor(
       Math.random() * Math.max(totalPosts - batchSize, 1)
     );
@@ -274,7 +273,6 @@ export const serveVideos = async (req, res) => {
     let filteredPosts = [];
     let allCheckedPosts = new Set();
 
-  
     while (filteredPosts.length < limit && allCheckedPosts.size < totalPosts) {
       const posts = await Post.find({ video: true })
         .sort({ createdAt: -1 })
@@ -303,10 +301,9 @@ export const serveVideos = async (req, res) => {
       }
 
       skip += batchSize;
-      if (skip >= totalPosts) skip = 0; 
+      if (skip >= totalPosts) skip = 0;
     }
 
-    
     if (filteredPosts.length === 0) {
       const allReelPosts = await Post.find({ video: true });
 
@@ -325,7 +322,6 @@ export const serveVideos = async (req, res) => {
       });
     }
 
-   
     for (const post of filteredPosts) {
       if (!post.viewedBy.includes(userId)) {
         post.viewedBy.push(userId);
