@@ -6,24 +6,26 @@ import Post from "../models/PostModel.js";
 import jwt from "jsonwebtoken";
 import cloudinary from "../lib/cloudinary.js";
 export const checkAuth = async (req, res) => {
-  const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
-  if (!token)
-    return res
-      .status(400)
-      .json({ message: "No token provided", success: false });
-  const blacklistedToken = await Blacklisted.findOne({ token });
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+    if (!token)
+      return res
+        .status(400)
+        .json({ message: "No token provided", success: false });
 
-  if (blacklistedToken)
-    return res
-      .status(401)
-      .json({ message: "Token is blacklisted", success: false });
+    // Use lean() for faster queries and limit fields
+    const user = await User.findById(req.user.id).select("-password").lean();
 
-  const user = await User.findById(req.user.id).select("-password");
+    if (!user)
+      return res
+        .status(401)
+        .json({ message: "User not found", success: false });
 
-  if (!user)
-    return res.status(401).json({ message: "User not found", success: false });
-
-  return res.status(200).json({ message: "User found", success: true, user });
+    return res.status(200).json({ message: "User found", success: true, user });
+  } catch (error) {
+    console.error("CheckAuth error:", error);
+    return res.status(500).json({ message: "Server error", success: false });
+  }
 };
 export const signUp = async (req, res) => {
   const { name, email, phoneNumber, password } = req.body;
@@ -143,7 +145,6 @@ export const userDetails = async (req, res) => {
 
 export const authUserPosts = async (req, res) => {
   const userId = req.user.id;
-
 
   try {
     const userPosts = await Post.find({ user: userId }).populate("user");

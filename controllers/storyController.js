@@ -127,7 +127,7 @@ export const allUsersStory = async (req, res) => {
       },
       {
         $lookup: {
-          from: "appusers", // Make sure the collection name is correct
+          from: "appusers", 
           localField: "_id",
           foreignField: "_id",
           as: "user",
