@@ -23,7 +23,11 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // https://reelxplore93.web.app
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://reelxplore93.netlify.app"],
+    origin: [
+      "http://localhost:5173",
+      "https://reelxplore93.netlify.app",
+      "https://reelsxplore93.netlify.app",
+    ],
     credentials: true,
   })
 );
