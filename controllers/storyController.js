@@ -8,6 +8,7 @@ import User from "../models/userModel.js";
 export const createStoryImage = async (req, res) => {
   const userId = req.user.id;
   const { imageUrl } = req.body;
+  console.log(userId);
 
   if (!imageUrl) {
     return res
@@ -127,7 +128,7 @@ export const allUsersStory = async (req, res) => {
       },
       {
         $lookup: {
-          from: "appusers", 
+          from: "appusers",
           localField: "_id",
           foreignField: "_id",
           as: "user",
