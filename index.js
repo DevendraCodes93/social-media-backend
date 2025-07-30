@@ -25,6 +25,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
+      "https://wk75j4x5-5173.inc1.devtunnels.ms",
       "https://reelxplore93.netlify.app",
       "https://reelsxplore93.netlify.app",
     ],
