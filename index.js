@@ -28,6 +28,13 @@ app.use(
       "https://wk75j4x5-5173.inc1.devtunnels.ms",
       "https://reelxplore93.netlify.app",
       "https://reelsxplore93.netlify.app",
+
+      "https://vybe.netlify.app",
+      "https://vybeReel.netlify.app",
+       "https://vybereel.netlify.app",
+       "https://vybereel93.netlify.app",
+
+      
     ],
     credentials: true,
   })
