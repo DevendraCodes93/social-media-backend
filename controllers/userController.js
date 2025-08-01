@@ -1,6 +1,7 @@
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/generateToken.js";
+import { OAuth2Client } from "google-auth-library";
 import Blacklisted from "../models/BlacklistedModel.js";
 import Post from "../models/PostModel.js";
 import jwt from "jsonwebtoken";
@@ -155,5 +156,46 @@ export const authUserPosts = async (req, res) => {
       .json({ message: "auth user posts fetched successfully", userPosts });
   } catch (error) {
     res.json({ error: error.message });
+  }
+};
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export const googleAuth = async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture, sub } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        email,
+        name,
+        profilePic:
+          picture !== ""
+            ? picture
+            : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                name
+              )}&background=random`,
+        password: "",
+        phoneNumber: "",
+      });
+    }
+
+    const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.status(200).json({ token: jwtToken, user });
+  } catch (err) {
+    console.error("Google Auth Error:", err);
+    res.status(401).json({ error: "Google login failed" });
   }
 };
