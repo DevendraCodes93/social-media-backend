@@ -31,10 +31,8 @@ app.use(
 
       "https://vybe.netlify.app",
       "https://vybeReel.netlify.app",
-       "https://vybereel.netlify.app",
-       "https://vybereel93.netlify.app",
-
-      
+      "https://vybereel.netlify.app",
+      "https://vybereel93.netlify.app",
     ],
     credentials: true,
   })
