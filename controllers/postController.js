@@ -73,6 +73,7 @@ export const createPostVideo = async (req, res) => {
       resource_type: "video",
       folder: "videos",
       max_file_size: 500 * 1024 * 1024,
+      timeout: 300000,
     });
     const newPost = new Post({
       user: userId,
