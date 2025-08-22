@@ -47,7 +47,10 @@ export const createPost = async (req, res) => {
 export const createPostVideo = async (req, res) => {
   const userId = req.user.id;
   const { content, videoUrl, title, video, thumbnail } = req.body;
-
+  if (!userId) {
+    return res.json({ message: "user not authorized", success: false });
+  }
+  console.log(req.body);
   if (!title || !videoUrl) {
     return res
       .status(400)
